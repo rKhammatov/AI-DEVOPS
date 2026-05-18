@@ -1,0 +1,53 @@
+# Ollama — локальный сервер LLM. Слушает HTTP на :11434.
+# Внутри ai-net другие контейнеры обращаются как http://ollama:11434.
+
+services:
+  ollama:
+    # Официальный образ. :latest удобно, но в проде лучше зафиксировать
+    # версию (например ollama/ollama:0.3.12) — апдейт не сломает внезапно.
+    image: ollama/ollama:latest
+
+    # Фиксированное имя контейнера — чтобы делать `docker exec ollama ...`
+    # без угадывания автогенерируемого имени.
+    container_name: ollama
+
+    # Перезапуск при любом падении, кроме случая когда мы сами остановили
+    # командой `docker stop`. Переживает reboot VPS.
+    restart: unless-stopped
+
+    ports:
+      # Формат: "host_ip:host_port:container_port"
+      # 0.0.0.0 = слушать на всех интерфейсах VPS — доступно из интернета.
+      # Если захочешь спрятать Ollama от внешнего мира — замени на
+      # "127.0.0.1:11434:11434" и ходи через ssh-туннель.
+      - "0.0.0.0:11434:11434"
+
+    volumes:
+      # Именованный том для моделей. Модели Ollama весят десятки гигабайт
+      # и переживают пересоздание контейнера. Физически лежит в
+      # /var/lib/docker/volumes/ollama_ollama_models/.
+      - ollama_models:/root/.ollama
+
+    networks:
+      # Подключаемся к общей сети, чтобы агенты находили нас по имени.
+      - ai-net
+
+    # Лимит памяти. На 16 ГБ VPS, где ещё крутятся два агента и MCP,
+    # без лимита один кривой запрос может съесть всё и OOM-killer
+    # прибьёт соседей.
+    deploy:
+      resources:
+        limits:
+          memory: 10g
+
+volumes:
+  # Том создастся автоматически при первом `up`. Имя в docker:
+  # ollama_ollama_models (префикс — имя стека).
+  ollama_models:
+
+networks:
+  # external: true означает «сеть создана вне этого compose, не трогай».
+  # Создаётся один раз вручную: `docker network create ai-net`.
+  # Без этой команды `up` упадёт с ошибкой "network ai-net not found".
+  ai-net:
+    external: true

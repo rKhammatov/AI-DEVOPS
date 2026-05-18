@@ -1,0 +1,32 @@
+# Hermes Agent от Nous Research — второй агент. Параллельно с OpenClaw.
+# Web UI на :9119, тоже ходит в Ollama и в MCP.
+
+services:
+  hermes:
+    # ВНИМАНИЕ: точный путь и тэг образа сверь с актуальной документацией
+    # Hermes Agent / Nous Research перед первым запуском.
+    image: nousresearch/hermes-agent:latest
+    command: gateway run
+    container_name: hermes
+    restart: unless-stopped
+    environment:
+      - HERMES_DASHBOARD=1
+      - API_SERVER_ENABLED=true
+      - API_SERVER_HOST=0.0.0.0
+      - API_SERVER_KEY=123456789
+      - API_SERVER_CORS_ORIGINS='*'
+
+    ports:
+      - "0.0.0.0:9119:9119"
+      - "0.0.0.0:8642:8642"
+
+
+    volumes:
+      - ./.hermes:/opt/data
+
+    networks:
+      - ai-net
+
+networks:
+  ai-net:
+    external: true

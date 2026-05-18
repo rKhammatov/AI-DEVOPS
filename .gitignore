@@ -1,0 +1,24 @@
+# Секреты — никогда не коммитим
+**/.env
+
+# репозиторий openclaw (клонируется отдельно, в основной репо не коммитим)
+openclaw-devops/openclaw/
+
+# репозиторий ouroboros (клонируется отдельно, в основной репо не коммитим)
+ouroboros/ouroboros-desktop/
+
+# Рабочие директории агентов
+**/workspace/*
+!**/workspace/.gitkeep
+
+# Локальные данные
+**/data/
+
+# Артефакты IDE и ОС
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Кеш зависимостей внутри src/ (если MCP на Node/Python/Rust)
+

@@ -1,0 +1,24 @@
+services:
+  ouroboros:
+    build:
+      context: ./ouroboros-desktop
+    image: ouroboros-web:local
+    container_name: ouroboros
+    restart: unless-stopped
+    ports:
+      - "8765:8765"
+    environment:
+      OUROBOROS_SERVER_HOST: 0.0.0.0
+      OUROBOROS_SERVER_PORT: 8765
+      OUROBOROS_NETWORK_PASSWORD: 
+      OUROBOROS_FILE_BROWSER_DEFAULT: /workspace
+      TZ: UTC
+    volumes:
+      - ./workspace:/workspace
+      - ./state:/root/Ouroboros
+    networks:
+      - ai-net
+
+networks:
+  ai-net:
+    external: true
