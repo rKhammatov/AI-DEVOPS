@@ -1,0 +1,12 @@
+{
+"mcp": {
+    "sessionIdleTtlMs": 600000,
+    "servers": {
+      "local-mcp": {
+        "url": "http://mcp-server:5042/mcp",
+        "transport": "streamable-http",
+        "stateless": true
+      }
+    }
+  }
+}
