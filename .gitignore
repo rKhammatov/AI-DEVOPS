@@ -6,6 +6,7 @@ openclaw-devops/openclaw/
 
 # репозиторий ouroboros (клонируется отдельно, в основной репо не коммитим)
 ouroboros/ouroboros-desktop/
+ouroboros/state
 
 # Рабочие директории агентов
 **/workspace/*
@@ -21,4 +22,3 @@ ouroboros/ouroboros-desktop/
 .DS_Store
 
 # Кеш зависимостей внутри src/ (если MCP на Node/Python/Rust)
-
