@@ -1,0 +1,53 @@
+# Dozzle — веб-интерфейс для просмотра логов всех Docker-контейнеров в реальном времени.
+# Доступен по http://<IP_VPS>:9999 (или через ssh-туннель).
+
+services:
+  dozzle:
+    # Официальный образ. Лёгкий (~10 МБ), написан на Go, без базы данных.
+    image: amir20/dozzle:latest
+
+    # Фиксированное имя — удобно для `docker logs dozzle` и exec.
+    container_name: dozzle
+
+    # Перезапуск при падении, переживает reboot VPS.
+    restart: unless-stopped
+
+    ports:
+      # 9999 выбран, чтобы не конфликтовать с другими сервисами стека.
+      # Замени на 127.0.0.1:9999:8080, если хочешь убрать из интернета.
+      - "0.0.0.0:9999:8080"
+
+    volumes:
+      # Docker socket — единственный способ читать логи контейнеров.
+      # Без него Dozzle не видит ни одного контейнера.
+      # read-only (:ro) — Dozzle только читает, команды не посылает.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    environment:
+      # Базовая аутентификация. Без неё интерфейс открыт всем.
+      # Значения берутся из .env рядом с этим файлом.
+      # Можно удалить обе строки, если VPS закрыт firewall-ом.
+      - DOZZLE_USERNAME=${DOZZLE_USERNAME}
+      - DOZZLE_PASSWORD=${DOZZLE_PASSWORD}
+
+      # Уровень логирования самого Dozzle: debug | info | warn | error.
+      - DOZZLE_LEVEL=info
+
+    networks:
+      # Подключаемся к общей сети, чтобы быть рядом с остальными сервисами.
+      # Для работы Dozzle сеть не нужна — он читает логи через socket,
+      # но единая сеть удобна для порядка.
+      - ai-net
+
+    # Лимит памяти — Dozzle практически ничего не потребляет,
+    # но ограничение защищает от внезапного роста при большом объёме логов.
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+
+networks:
+  # Сеть создаётся один раз вручную: `docker network create ai-net`.
+  # external: true — compose не управляет её жизненным циклом.
+  ai-net:
+    external: true
