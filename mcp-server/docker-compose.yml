@@ -2,15 +2,15 @@
 # Несколько HTTP-портов одновременно (8080, 8081, 8082 — пример).
 
 services:
-  mcp-server:
+  mcp-server-dev:
     # Собираем образ из локального Dockerfile в ./src.
     # Альтернатива (когда стабилизируется): image: ghcr.io/me/mcp:1.0.0
     #build:
-      #context: ./src
-      # Если Dockerfile называется не Dockerfile — раскомментируй:
-      # dockerfile: Dockerfile.dev
+    #context: ./src
+    # Если Dockerfile называется не Dockerfile — раскомментируй:
+    # dockerfile: Dockerfile.dev
     image: docker.io/rhammatov/mock-service-mcp:latest
-    container_name: mcp-server
+    container_name: mcp-server-dev
     restart: unless-stopped
 
     environment:
@@ -24,8 +24,8 @@ services:
       #- "0.0.0.0:8082:8082"
 
     #env_file:
-      # .env лежит рядом с этим compose. НЕ коммитится (см. .gitignore).
-      # Содержимое попадает внутрь контейнера как environment-переменные.
+    # .env лежит рядом с этим compose. НЕ коммитится (см. .gitignore).
+    # Содержимое попадает внутрь контейнера как environment-переменные.
     #  - .env
 
     volumes:
@@ -33,7 +33,8 @@ services:
       # Правишь файл на хосте — он сразу изменился в контейнере.
       # Если внутри есть watch-mode (nodemon, uvicorn --reload, air, ...) —
       # сервер сам перезапустится. Если нет — `docker compose restart`.
-      - /home/user1/.openclaw/workspace/skills:/app/skills
+      #- /home/orion/.openclaw/workspace/skills:/app/skills
+      - /home/orion/devops/mcp/dev:/app/database/
 
       # Anonymous volumes защищают кеш зависимостей от bind-mount'а.
       # Без этого хостовая папка node_modules затёрла бы контейнерную

@@ -15,14 +15,14 @@ services:
       - API_SERVER_HOST=0.0.0.0
       - API_SERVER_KEY=123456789
       - API_SERVER_CORS_ORIGINS='*'
+      - HERMES_DASHBOARD_TUI=1
 
     ports:
       - "0.0.0.0:9119:9119"
       - "0.0.0.0:8642:8642"
 
-
     volumes:
-      - ./.hermes:/opt/data
+      - ~/.hermes:/opt/data
 
     networks:
       - ai-net

@@ -15,6 +15,10 @@ ouroboros/state
 # Локальные данные
 **/data/
 
+# Дампы Postgres (бэкапы pg_dump — данные БД, не коммитим)
+*.dump
+*.sql
+
 # Артефакты IDE и ОС
 .vscode/
 .idea/
