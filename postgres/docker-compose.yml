@@ -1,0 +1,55 @@
+# PostgreSQL — реляционная БД для сервисов стека.
+# Соседи в сети ai-net ходят к ней по DNS-имени: postgres:5432.
+# Порт 5432 проброшен наружу (см. предупреждение ниже).
+
+services:
+  postgres:
+    # Официальный образ, версия запинена (НЕ latest — чтобы обновление
+    # мажорной версии не сломало формат данных в томе неожиданно).
+    image: postgres:17
+
+    # Фиксированное имя — для `docker exec`/`logs` и как DNS-имя в ai-net.
+    container_name: postgres
+
+    # Перезапуск при падении, переживает reboot VPS.
+    restart: unless-stopped
+
+    env_file:
+      # Креды (POSTGRES_USER/PASSWORD/DB) лежат в .env рядом с этим файлом.
+      # .env НЕ коммитится (см. .gitignore). ВАЖНО: `restart` не перечитывает
+      # .env — после правки нужен `up -d`.
+      - .env
+
+    ports:
+      # Слева host, справа контейнер. 0.0.0.0 = наружу, как остальные сервисы.
+      # ОПАСНО для БД: Postgres будет доступен из интернета, защита только
+      # паролем + UFW. Чтобы скрыть от интернета — замени на "127.0.0.1:5432:5432".
+      - "0.0.0.0:5432:5432"
+
+    volumes:
+      # Именованный том с данными БД. Переживает `down`, стирается `down -v`.
+      # Реальное имя тома — postgres_pg_data (compose префиксует именем папки).
+      - pg_data:/var/lib/postgresql/data
+
+    networks:
+      # Общая сеть стека — чтобы агенты/MCP находили БД по имени postgres.
+      - ai-net
+
+    healthcheck:
+      # pg_isready проверяет, что сервер принимает подключения.
+      # Зависящие сервисы могут ждать статус healthy.
+      test: ["CMD-SHELL", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  # Объявление именованного тома, на который ссылается сервис выше.
+  pg_data:
+
+networks:
+  # Сеть создаётся один раз вручную: `docker network create ai-net`.
+  # external: true — compose не управляет её жизненным циклом.
+  ai-net:
+    external: true

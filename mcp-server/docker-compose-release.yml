@@ -1,0 +1,53 @@
+# MCP-сервер — мой код. MVP: bind-mount исходников для быстрых правок.
+# Несколько HTTP-портов одновременно (8080, 8081, 8082 — пример).
+
+services:
+  mcp-server-release:
+    # Собираем образ из локального Dockerfile в ./src.
+    # Альтернатива (когда стабилизируется): image: ghcr.io/me/mcp:1.0.0
+    #build:
+    #context: ./src
+    # Если Dockerfile называется не Dockerfile — раскомментируй:
+    # dockerfile: Dockerfile.dev
+    image: docker.io/rhammatov/mock-service-mcp:latest
+    container_name: mcp-server-release
+    restart: unless-stopped
+
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+
+    ports:
+      # Подставь свои реальные порты. Слева host, справа контейнер.
+      # Удобно когда они совпадают.
+      - "0.0.0.0:6042:5042"
+      - "0.0.0.0:6043:5043"
+      #- "0.0.0.0:8082:8082"
+
+    #env_file:
+    # .env лежит рядом с этим compose. НЕ коммитится (см. .gitignore).
+    # Содержимое попадает внутрь контейнера как environment-переменные.
+    #  - .env
+
+    volumes:
+      # MVP-ХАК: исходники монтируются в контейнер напрямую.
+      # Правишь файл на хосте — он сразу изменился в контейнере.
+      # Если внутри есть watch-mode (nodemon, uvicorn --reload, air, ...) —
+      # сервер сам перезапустится. Если нет — `docker compose restart`.
+      #- /home/orion/.openclaw/workspace/skills:/app/skills
+      - /home/orion/devops/mcp/release:/app/database/
+
+      # Anonymous volumes защищают кеш зависимостей от bind-mount'а.
+      # Без этого хостовая папка node_modules затёрла бы контейнерную
+      # (и в контейнере оказался бы её пустой/другой вариант).
+      # Раскомментируй нужное под свой стек:
+      #- /app/node_modules        # Node.js
+      # - /app/.venv             # Python (uv/poetry/venv)
+      # - /app/target            # Rust
+      # - /app/__pycache__       # Python кеш
+
+    networks:
+      - ai-net
+
+networks:
+  ai-net:
+    external: true
