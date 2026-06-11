@@ -7,18 +7,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Self-hosted AI-стек для Ubuntu VPS (16 ГБ RAM, без GPU). Семь независимых docker-сервисов, у каждого — своя папка с `docker-compose.yml` и `README.md`:
 
 - **Ollama** (`:11434`) — локальный LLM-сервер. Именованный том `ollama_models`.
-- **MCP-server** (`:5042`, `:5043`) — инструменты пользователя. Готовый образ `docker.io/rhammatov/mock-service-mcp:latest` (ASP.NET Core). Сейчас bind-mount-ит `/home/orion/devops/mcp/dev` → `/app/database/`; блок `networks: ai-net` **закомментирован** (сервис вне общей сети — общается только через проброшенные порты).
+- **MCP-server** (`:5042`, `:5043`) — инструменты пользователя. Готовый образ `docker.io/rhammatov/mock-service-mcp:latest` (ASP.NET Core). Сейчас bind-mount-ит `/home/orion/devops/mcp/dev` → `/app/database/` и подключён к `ai-net` (соседи находят его по DNS-имени `mcp-server-dev`). Блок `build:` закомментирован — работает на готовом образе.
 - **OpenClaw** (`openclaw-devops/`, `:18789` gateway + `:18790` bridge) — агент №1. Два сервиса в одном compose: `openclaw-gateway` (демон) и `openclaw-cli` (интерактивный CLI, `depends_on` gateway). Образ **собирается** (`build: .`) из отдельно клонируемого исходника.
 - **Hermes** (`:9119`, `:8642`) — агент №2 от Nous Research, запускается командой `gateway run` и требует первоначального `setup`-визарда (см. `hermes/README.md`).
 - **Ouroboros** (`:8765`) — веб-агент. Образ **собирается** (`build: ./ouroboros-desktop`) из отдельно клонируемого репозитория `joi-lab/ouroboros-desktop`.
 - **Dozzle** (`:9999`) — веб-просмотрщик логов всех контейнеров хоста. Читает `/var/run/docker.sock:ro`, поэтому видит контейнеры независимо от сети. Защищён basic-auth из своего `.env`.
 - **Postgres** (`:5432`) — реляционная БД. Официальный образ `postgres:17`, именованный том `postgres_pg_data`. В `ai-net` — соседи ходят по `postgres:5432`. Креды из `.env` (`POSTGRES_USER/PASSWORD/DB`).
 
+Папка **`nginx-devops/`** — пока пустой каталог-заготовка (нет ни `docker-compose.yml`, ни конфигов). Если в нём появится reverse-proxy, это изменит инвариант №3 («без reverse-proxy») — уточни у пользователя замысел, прежде чем что-то наполнять.
+
 Конфигурация хранится здесь (compose-файлы, `.env.example`, markdown). Исходники приложений сюда **не коммитятся**: OpenClaw и Ouroboros клонируются отдельными репозиториями в подпапки, которые игнорируются git (см. `.gitignore`), и собираются локально. Любые изменения в этом репо = правка YAML/конфигов/markdown.
 
 ## Архитектурные инварианты
 
-1. **Общая внешняя сеть `ai-net`** — объявлена в каждом compose как `external: true`. Создаётся один раз вручную: `docker network create ai-net`. Без неё `up` падает. Контейнеры в сети обращаются друг к другу по имени сервиса: `http://ollama:11434`. **Исключение:** у `mcp-server` блок `networks` сейчас закомментирован — он вне `ai-net` и доступен только через проброшенные порты, не по DNS-имени.
+1. **Общая внешняя сеть `ai-net`** — объявлена в каждом compose как `external: true`. Создаётся один раз вручную: `docker network create ai-net`. Без неё `up` падает. Контейнеры в сети обращаются друг к другу по имени сервиса: `http://ollama:11434`. Имя для DNS — это **имя сервиса в compose** (у MCP это `mcp-server-dev`, не `mcp-server`).
 2. **Каждый сервис управляется отдельно** — семь независимых `docker-compose.yml`, никакого общего top-level compose. Падение/обновление одного не трогает остальных.
 3. **Порты пробрасываются на `0.0.0.0`** — сервисы доступны из интернета напрямую, без reverse-proxy. Безопасность обеспечивается токенами в `.env`/`environment` каждого сервиса и UFW. (Dozzle защищён basic-auth; Hermes сейчас с захардкоженным `API_SERVER_KEY` прямо в compose.)
 4. **`.env` рядом с compose** — у MCP, OpenClaw, Hermes, Dozzle есть `.env`/`.env.example`; реальный `.env` не коммитится (см. `.gitignore`). `docker compose restart` НЕ перечитывает `.env` — нужен `up -d`.

@@ -17,7 +17,7 @@ mv ../docker-compose.yml docker-compose.yml
 
 export OPENCLAW_IMAGE="ghcr.io/openclaw/openclaw:latest"
 
-export OPENCLAW_IMAGE="ghcr.io/openclaw/openclaw:2026.04.26"
+#export OPENCLAW_IMAGE="ghcr.io/openclaw/openclaw:2026.04.26"
 
 ./scripts/docker/setup.sh
 
