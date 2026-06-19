@@ -14,7 +14,7 @@ services:
     restart: unless-stopped
 
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
 
     ports:
       # Подставь свои реальные порты. Слева host, справа контейнер.
@@ -28,22 +28,22 @@ services:
     # Содержимое попадает внутрь контейнера как environment-переменные.
     #  - .env
 
-    volumes:
-      # MVP-ХАК: исходники монтируются в контейнер напрямую.
-      # Правишь файл на хосте — он сразу изменился в контейнере.
-      # Если внутри есть watch-mode (nodemon, uvicorn --reload, air, ...) —
-      # сервер сам перезапустится. Если нет — `docker compose restart`.
-      #- /home/orion/.openclaw/workspace/skills:/app/skills
-      - /home/orion/devops/mcp/release:/app/database/
+    #volumes:
+    # MVP-ХАК: исходники монтируются в контейнер напрямую.
+    # Правишь файл на хосте — он сразу изменился в контейнере.
+    # Если внутри есть watch-mode (nodemon, uvicorn --reload, air, ...) —
+    # сервер сам перезапустится. Если нет — `docker compose restart`.
+    #- /home/orion/.openclaw/workspace/skills:/app/skills
+    #- /home/orion/devops/mcp/release:/app/database/
 
-      # Anonymous volumes защищают кеш зависимостей от bind-mount'а.
-      # Без этого хостовая папка node_modules затёрла бы контейнерную
-      # (и в контейнере оказался бы её пустой/другой вариант).
-      # Раскомментируй нужное под свой стек:
-      #- /app/node_modules        # Node.js
-      # - /app/.venv             # Python (uv/poetry/venv)
-      # - /app/target            # Rust
-      # - /app/__pycache__       # Python кеш
+    # Anonymous volumes защищают кеш зависимостей от bind-mount'а.
+    # Без этого хостовая папка node_modules затёрла бы контейнерную
+    # (и в контейнере оказался бы её пустой/другой вариант).
+    # Раскомментируй нужное под свой стек:
+    #- /app/node_modules        # Node.js
+    # - /app/.venv             # Python (uv/poetry/venv)
+    # - /app/target            # Rust
+    # - /app/__pycache__       # Python кеш
 
     networks:
       - ai-net
