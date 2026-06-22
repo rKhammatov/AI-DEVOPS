@@ -14,6 +14,7 @@ ouroboros/state
 
 # Локальные данные
 **/data/
+**/local_config
 
 # Дампы Postgres (бэкапы pg_dump — данные БД, не коммитим)
 *.dump
