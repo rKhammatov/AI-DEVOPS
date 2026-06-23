@@ -28,13 +28,13 @@ services:
     # Содержимое попадает внутрь контейнера как environment-переменные.
     #  - .env
 
-    #volumes:
-    # MVP-ХАК: исходники монтируются в контейнер напрямую.
-    # Правишь файл на хосте — он сразу изменился в контейнере.
-    # Если внутри есть watch-mode (nodemon, uvicorn --reload, air, ...) —
-    # сервер сам перезапустится. Если нет — `docker compose restart`.
-    #- /home/orion/.openclaw/workspace/skills:/app/skills
-    #- /home/orion/devops/mcp/dev:/app/database/
+    volumes:
+      # MVP-ХАК: исходники монтируются в контейнер напрямую.
+      # Правишь файл на хосте — он сразу изменился в контейнере.
+      # Если внутри есть watch-mode (nodemon, uvicorn --reload, air, ...) —
+      # сервер сам перезапустится. Если нет — `docker compose restart`.
+      #- /home/orion/.openclaw/workspace/skills:/app/skills
+      - ./local_config/appsettings.Development.json:/app/appsettings.Development.json
 
     # Anonymous volumes защищают кеш зависимостей от bind-mount'а.
     # Без этого хостовая папка node_modules затёрла бы контейнерную
